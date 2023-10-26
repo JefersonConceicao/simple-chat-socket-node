@@ -12,25 +12,28 @@ const { Server } = require("socket.io");
 
 const io = new Server(server, {
     cors: {
-        origin:['http://localhost:5173', 'http://localhost:3000']
+        origin:'*',
+        methods: ['GET', 'POST']
     }
 });
 
 const arrayMessages = [];
 
 io.on('connection', (socket) => {
-    socket.emit('get_messages', arrayMessages)
+    socket.join('minha_sala');
 
-    socket.on('send_message', (data,callback) => {
+    io.to('minha_sala').emit('get_messages', arrayMessages)
+
+    socket.on('send_message', (data) => {
         arrayMessages.push({
             author: data.author,
             message: data.message,
         });
 
-        callback({
+        io.to('minha_sala').emit('send_message', {
             author: data.author,
             message: data.message,
-        }); 
+        })
     })
     
     socket.on('disconnect', () => {
@@ -46,6 +49,6 @@ app.get('/', (req, res) => {
     });
 })
 
-server.listen(port, () => {
+server.listen(port, '172.22.9.169', () => {
     console.log(`Rodando ${port}`)
 })
